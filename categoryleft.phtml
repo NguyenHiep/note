@@ -1,0 +1,115 @@
+<?php
+/**
+ * Left Category menu for store
+ * We are showing  jsut the top level categorioes
+ * @see Mage_Catalog_Block_Navigation
+ */
+?>
+
+                <h2>Kategorien</h2>
+
+                            <ul class="list-group sidebar-menu scroller" id="sidebar-menu-listCat">
+                                <?php $l=0; $more_link = false; ?>
+                                <?php foreach ($this->getStoreCategories() as $_categories): ?>
+                                    <?php if($_categories->name!=""):  ?>
+                                        <?php $_count = $_categories->getChildren()->count() ?>
+                                        <?php $i = 0 ?>
+                                        <?php foreach ($_categories->getChildren() as $_category):?>
+                                            <?php $_count2 = $_category->getChildren()->count() ?>
+                                            <?php $i++ ?>
+                                            <?php
+                                            $class_li = '';
+                                            if($i > 10)
+                                            {
+                                                $class_li = "sub hide";
+                                                $more_link = true;
+                                            }
+                                            if($i == $_count)
+                                                $class_li = $class_li." last";
+                                                $class_li = $class_li ? $class_li :" ";
+                                            ?>
+                                            <li  class="list-group-item listSuchenItem dropdown clearfix  <?php echo $class_li; ?>">
+                                               <!-- <i class="fa fa-angle-right"></i> --> 
+                                               <i class="glyphicon glyphicon-triangle-right pull-left margin-right-5"></i>
+                                                <a href="<?php echo htmlspecialchars($this->getCategoryUrl($_category)); ?>" class="link-cate-red">
+                                                    <?php echo str_replace('Spot','',$_category->getName()) ?>
+                                                </a>
+												
+                                                <?php $j = 0; ?>
+                                                <?php if($_category->getChildren()->count()>0):?>
+
+                                                    <ul class="dropdown-menu">
+                                                        <?php foreach ($_category->getChildren() as $_cat):?>
+                                                            <?php $_count3 = $_cat->getChildren()->count() ?>
+                                                            <?php $j++ ?>
+
+                                                            <li <?php if( $j == $_count2 ):?> class="list-group-item listSuchenItem dropdown clearfix" <?php else: ?> class="dropdown" <?php endif ?> >
+                                                                <i class="fa fa-angle-right pull-left"></i>
+                                                                   <a id="csscate_<?php echo $_cat->getId();?>" href="<?php echo htmlspecialchars($this->getCategoryUrl($_cat)); ?>">
+                                                                      <?php echo $_cat->getName()?>
+                                                                </a>
+
+
+                                                                <?php $k = 0 ?>
+                                                                <?php if($_cat->getChildren()->count()>0):?>
+                                                                    <ul class="dropdown-menu">
+                                                                        <?php foreach ($_cat->getChildren() as $_cat2):?>
+                                                                            <?php $_count4 = $_cat2->getChildren()->count() ?>
+                                                                            <?php $k++?>
+                                                                            <li <?php if( $k == $_count3 ):?> class="list-group-item listSuchenItem dropdown clearfix" <?php else: ?> class="dropdown" <?php endif ?> >
+                                                                                <i class="fa fa-angle-right"></i>
+                                                                                <a id="csscate_<?php echo $_cat2->getId();?>" href="<?php echo htmlspecialchars($this->getCategoryUrl($_cat2)); ?>">
+                                                                                    <?php echo $_cat2->getName()?>
+                                                                                </a>
+
+                                                                                <?php $l = 0 ?>
+                                                                                <?php if($_cat2->getChildren()->count()>0):?>
+                                                                                    <ul class="dropdown-menu">
+                                                                                        <?php foreach ($_cat2->getChildren() as $_cat3):?>
+                                                                                            <?php $l++ ?>
+                                                                                            <li <?php if( $l == $_count4 ):?> class="list-group-item listSuchenItem dropdown clearfix" <?php else: ?> class="dropdown" <?php endif ?> >
+                                                                                                <i class="fa fa-angle-right"></i>
+                                                                                                <a id="csscate_<?php echo $_cat3->getId();?>" href="<?php echo htmlspecialchars($this->getCategoryUrl($_cat3)); ?>">
+                                                                                                   <?php echo $_cat3->getName()?>
+                                                                                                </a>
+
+                                                                                            </li>
+                                                                                        <?php endforeach ?>
+                                                                                    </ul>
+                                                                                <?php endif?>
+
+                                                                            </li>
+                                                                        <?php endforeach ?>
+                                                                    </ul>
+                                                                <?php endif?>
+
+                                                            </li>
+                                                        <?php endforeach ?>
+                                                    </ul>
+                                                <?php endif?>
+                                            </li>
+                                        <?php endforeach ?>
+                                    <?php endif?>
+                                <?php endforeach ?>
+                               
+                                <script>
+
+                                    function showCategoryLink(showid) {
+                                        if (showid == 1) {
+                                            jQuery(".list-group-item").removeClass("hide");
+                                            jQuery("#show-all").addClass("hide");
+                                        } else {
+                                        	jQuery(".sub").addClass("hide");
+                                        	jQuery("#show-all").removeClass("hide");
+                                        }
+                                    }
+
+                                </script>
+
+                               <?php
+                        ?>
+                            </ul>
+                             <?php if($more_link): ?>
+                                    <div  class='list-group-item clearfix margin-bottom-25' id='show-all'><a href="javascript:showCategoryLink(1);" class="pull-right text-lowercase"> &gt;&gt;&gt; weiter </a></div>
+                                    <div  class='list-group-item clearfix sub hide margin-bottom-25' id='hide-all'><a href="javascript:showCategoryLink(0);" class="pull-right text-lowercase"> &lt;&lt;&lt; verbergen </a></div>
+                                <?php endif?>

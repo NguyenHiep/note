@@ -1,0 +1,8 @@
+Lam theo nao de Remove block
+TH1: Block co after hoac before
++ <remove name="Ten block" />
+VD: <remove name="left.reports.product.viewed" />
+TH2: Block la con mot block nao do (chang han block root)
++ <action method="unsetChild"><name>Ten block </name></action>
+VD: <action method="unsetChild"><name>left.reports.product.viewed</name></action>
+=> Tuy vao truong hop ma ta su dung cho dung voi muc dich cua minh.
