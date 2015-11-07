@@ -1,0 +1,2 @@
+Mot so ham mang (array) trong php
+1.shuffle() -> random phan tu trong mang
