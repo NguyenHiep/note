@@ -6,3 +6,55 @@ TH2: Block la con mot block nao do (chang han block root)
 + <action method="unsetChild"><name>Ten block </name></action>
 VD: <action method="unsetChild"><name>left.reports.product.viewed</name></action>
 => Tuy vao truong hop ma ta su dung cho dung voi muc dich cua minh.
+
+**** Ham $this->helper('core/string')->truncate(strip_tags($pr->getDescription()),60) trong magento 
+-> tao ra cac dau ... sau so tu khoa
+
+**** Lam the nao de get controller, module, action va router name?
+TH1: Lay ten trong template files
+Ta su dung ham: $this->getRequest() can be used in template (phtml) files.
+Code:
+/**
+ * get Controller name
+ */
+$this->getRequest()->getControllerName();
+ 
+/**
+ * get Action name, i.e. the function inside the controller
+ */
+$this->getRequest()->getActionName();
+ 
+/**
+ * get Router name
+ */
+$this->getRequest()->getRouteName();
+ 
+/**
+ * get module name
+ */
+$this->getRequest()->getModuleName();
+TH2: Lay ten trong class
+/**
+ * get Controller name
+ */
+Mage::app()->getRequest()->getControllerName();
+ 
+/**
+ * get Action name, i.e. the function inside the controller
+ */
+Mage::app()->getRequest()->getActionName();
+ 
+/**
+ * get Router name
+ */
+Mage::app()->getRequest()->getRouteName();
+ 
+/**
+ * get module name
+ */
+Mage::app()->getRequest()->getModuleName();
+
+=== Class chua cac phuong thuc get module
+The above functions (getControllerName, getActionName, getRouteName, getModuleName) are present in the class Mage_Core_Model_Url.
+You can explore all requests with print_r.
+echo "<pre>"; print_r(Mage::app()->getRequest());	

@@ -1,2 +1,17 @@
 Mot so ham mang (array) trong php
 1.shuffle() -> random phan tu trong mang
+
+
+
+Magento:
+
+public function getAllManufacture()
+	    {
+	      $product = Mage::getModel('catalog/product');
+	      $attributes = Mage::getResourceModel('eav/entity_attribute_collection')
+	                  ->setEntityTypeFilter($product->getResource()->getTypeId())
+	                  ->addFieldToFilter('attribute_code', 'spotcity_manufacture'); //can be changed to any attribute
+	      $attribute = $attributes->getFirstItem()->setEntity($product->getResource());
+	      $manufacturers = $attribute->getSource()->getAllOptions(false);
+	      return $manufacturers;
+	    }	
