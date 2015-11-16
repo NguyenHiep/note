@@ -1,0 +1,761 @@
+<?php
+/**
+ * Magento
+ *
+ * NOTICE OF LICENSE
+ *
+ * This source file is subject to the Academic Free License (AFL 3.0)
+ * that is bundled with this package in the file LICENSE_AFL.txt.
+ * It is also available through the world-wide-web at this URL:
+ * http://opensource.org/licenses/afl-3.0.php
+ * If you did not receive a copy of the license and are unable to
+ * obtain it through the world-wide-web, please send an email
+ * to license@magentocommerce.com so we can send you a copy immediately.
+ *
+ * DISCLAIMER
+ *
+ * Do not edit or add to this file if you wish to upgrade Magento to newer
+ * versions in the future. If you wish to customize Magento for your
+ * needs please refer to http://www.magentocommerce.com for more information.
+ *
+ * @category    design
+ * @package     base_default
+ * @copyright   Copyright (c) 2012 Magento Inc. (http://www.magentocommerce.com)
+ * @license     http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
+ */
+
+/**
+ * Product view template
+ *
+ * @see Mage_Catalog_Block_Product_View
+ * @see Mage_Review_Block_Product_View
+ */
+$time = microtime();
+
+$time = explode(' ', $time);
+
+$time = $time[1] + $time[0];
+
+$start = $time;
+?>
+<style>.breadcrumbs{display: none;}</style>
+<?php 
+$_helper = $this->helper('catalog/output'); 
+$_product = $this->getProduct(); 
+$category=$_product->getCategoryIds();
+$web=mage::getSingleton('web/web');
+$web->connectMemcache();
+$supplierhelper= Mage::helper('web');
+$suppliercode = "spotcity_supplier";
+
+
+$supplierlabel=$web->getMemcache('spotcitysupplier-'.$_product->getSpotcitySupplier().'-'.$suppliercode);
+if($supplierlabel=="" || $supplierlabel==false || $supplierlabel==-1){
+	$supplierlabel=$_product->getAttributeText($suppliercode);
+	$web->setMemcache('spotcitysupplier-'.$_product->getSpotcitySupplier().'-'.$suppliercode,$supplierlabel,'86400');
+}
+//$supplierid= $supplierhelper->attributeValueExistsId($suppliercode,$supplierlabel);
+//$companyarr= $supplierhelper->getidcompany($_product->getAttributeText($suppliercode));
+//$supplierinformation = $supplierhelper->supplierinfomations($companyarr[$_product->getAttributeText($suppliercode)]);
+
+$supplierinformation=$web->getMemcache('spotcitysupplier-'.$_product->getSpotcitySupplier());
+if($supplierinformation=="" || $supplierinformation==false || $supplierinformation==-1){
+	$supplierinformation= $supplierhelper->supplierinfomations($_product->getSpotcitySupplier());
+	$web->setMemcache('spotcitysupplier-'.$_product->getSpotcitySupplier(),$supplierinformation,'86400');
+}
+
+#lay latlong
+	function get_lat_long($address=''){
+		$address = str_replace(" ", "+", $address);
+	
+		$json = file_get_contents("http://maps.google.com/maps/api/geocode/json?address=$address&sensor=false");
+		$json = json_decode($json);
+	
+		$lat = $json->{'results'}[0]->{'geometry'}->{'location'}->{'lat'};
+		$long = $json->{'results'}[0]->{'geometry'}->{'location'}->{'lng'};
+		if($lat != '' && $long != ''){
+			return $lat.','.$long;
+		}else{
+			return '';
+		}
+	}
+	if($supplierinformation['lat'] == '' || $supplierinformation['long'] == ''){
+		if($supplierinformation['address'] != ''){
+			$addressArr = explode('-',$supplierinformation['address']);
+			$address = $addressArr[0];
+			foreach($addressArr as $addresss){
+				if(strlen($address) < strlen($addresss)){
+					$address = $addresss;
+				}
+			}
+		}
+		$google_location = $address.' '.$supplierinformation['plz'].' '.$supplierinformation['city'];
+		$google_location = str_replace("  ", " ", $google_location);
+		$latlong = get_lat_long(utf8_encode($supplierinformation['google_location']));
+		if($latlong != ''){
+			$supplierhelper -> updatelatlong($supplierinformation['typo3_id'],$latlong);
+			$google_location = $supplierinformation['google_location'];
+		}else{
+			$latlong = get_lat_long($google_location);
+			if($latlong != ''){
+				$supplierhelper -> updatelatlong($supplierinformation['typo3_id'],$latlong);
+			}			
+		}
+	}
+	$latlong=$supplierinformation['lat'].','.$supplierinformation['long'];
+	$google_location = $supplierinformation['google_location'];
+#END lay latlong
+$checkdomains = Mage::getModel('ads/fedomain')->getCollection()
+->addFieldToFilter('domainName', array('like'=>$supplierinformation['city'].'.%'))->getdata();
+
+$friendlyurl = str_replace ( " ", "-", strtolower ( $supplierinformation ["option_value"] ) );
+$friendlyurl = str_replace ( ".", "-", $friendlyurl );
+$friendlyurl = str_replace ( "ü", "ue", $friendlyurl );
+$friendlyurl = str_replace ( "ä", "ae", $friendlyurl );
+$friendlyurl = str_replace ( "ö", "oe", $friendlyurl );
+$friendlyurl = str_replace ( "ß", "ss", $friendlyurl );
+$friendlyurl = str_replace ( "Ü", "ue", $friendlyurl );
+$friendlyurl = str_replace ( "Ä", "ae", $friendlyurl );
+$friendlyurl = str_replace ( "Ö", "oe", $friendlyurl );
+
+$target_spotsite = "http://".$checkdomains[0]['domainName'] . "/company-detail/type/cdetail/" . $supplierinformation ["typo3_id"] . "/".$friendlyurl;
+$arrangecates=array();
+$tempcategory=array();
+$cateandsubcat=array();
+foreach($category as $data)
+{   
+	$cateinfo=Mage::getModel('catalog/category')->load($data)	;
+    if($data != 3 && $data != 245)
+        $cateandsubcat[] = $cateinfo["name"];
+	$arrangecate["id"]=$cateinfo["entity_id"];
+	$arrangecate["level"]=$cateinfo["level"];
+	array_push($arrangecates,$arrangecate);
+}
+      
+$countcategory=count($arrangecates);
+for($i=1;$i<=$countcategory;$i++)
+{
+		foreach($arrangecates As $key=>$check)
+		{
+			if($check["level"]==$i)
+				break;
+		}	
+		$categorystore[]=$arrangecates[$key]["id"];
+}
+$lastcategory=end($categorystore);
+?>
+<?php $catearr =  explode(" ", $cateandsubcat[0]); ?>
+<script>
+ Event.observe(window, 'load', function() {
+
+	 <?php foreach($categorystore as $cateopen):?>
+
+				if($('cate_<?php echo $cateopen;?>')!==null)
+				{
+                    $('cate_<?php echo $cateopen;?>').toggleClassName('grower CLOSE');
+                    $('cate_<?php echo $cateopen;?>').addClassName('grower selected OPEN');
+                    $('hidecate_<?php echo $cateopen;?>').show();
+				}
+				if($('csscate_<?php echo $cateopen;?>')!==null)
+				{
+                    $('csscate_<?php echo $lastcategory;?>').style.color="blue";
+				}
+        
+            <?php endforeach;?>
+        
+    });
+    var optionsPrice = new Product.OptionsPrice(<?php echo $this->getJsonConfig() ?>);
+    function redirect_to_spotsite(){
+        
+    	window.location = "<?php echo $target_spotsite ?>";
+    }
+</script>
+<div id="messages_product_view"><?php echo $this->getMessagesBlock()->getGroupedHtml() ?></div>
+<div class="product-view-detail">
+		  <div class="row">
+                <form action="<?php echo $this->getSubmitUrl($_product) ?>" method="post" id="product_addtocart_form"<?php if($_product->getOptions()): ?> enctype="multipart/form-data"<?php endif; ?>>
+                <div class="no-display">
+                    <input type="hidden" name="product" value="<?php echo $_product->getId() ?>" />
+                    <input type="hidden" name="related_product" id="related-products-field" value="" />
+                </div>
+				<div class="col-xs-12 col-sm-12 col-md-12 ">
+					<!--   IHRE AUSWAHL -->
+					<p class="title_block">IHRE AUSWAHL : <?php echo $_helper->productAttribute($_product, $_product->getName(), 'name') ?></p>
+					<!--  end IHRE AUSWAHL -->
+					<div class="col-xs-12 col-sm-12 col-md-12 rowViewProduct" style="background: #FFF;">
+						<div class="row">                        
+							<div class="col-xs-12 col-sm-5 col-md-5 product-img-box imageThumbnail">
+								<?php echo $this->getChildHtml('media') ?>                                
+                                <!--  
+                                <p class="resetimg clear">
+                                	<span id="wrapResetImages" style="display: block;">
+                                	<img src="http://www.spot-outlet.de/shop/themes/default/img/icon/cancel_11x13.gif" alt="Cancel" width="11" height="13"/> <a id="resetImages" href="http://www.spot-outlet.de/shop/index.php?id_product=25&amp;controller=product" onclick="$('span#wrapResetImages').hide('slow');return (false);"><font><font>Display all pictures</font></font></a>
+                                	</span>
+                                </p>
+                                -->
+							</div>
+							<div id="pb-left-column" class="col-xs-12 col-sm-7 col-md-7 rowTitlename">                                
+                                <!-- <h1> -->
+                                <!-- add to cart form-->
+                                <form id="buy_block" action="shop/index.php?controller=cart" method="post">                                
+                                	<!-- hidden datas -->
+                                	<p class="hidden">
+                                		<input type="hidden" name="token" value="8e0d5e2fb91d444e3c8d14477e66defe"/>
+                                		<input type="hidden" name="id_product" value="25" id="product_page_product_id"/>
+                                		<input type="hidden" name="add" value="1"/>
+                                		<input type="hidden" name="id_product_attribute" id="idCombination" value=""/>
+                                	</p>
+                                	<div class="">
+                                		<p class="linkVerkauf">Verkauf durch: <span><?php echo $_helper->productAttribute($_product, $_product->getName(), 'name') ?></span></p>
+                                	</div>                                    
+                                    <ul class="list-unstyled">
+                                        <li><a href="#">STYLED</a></li>
+                                        <li><a href="#"><?php echo $cateandsubcat[1] ?>'s <?php echo $catearr[1]; ?></a></li>
+                                        <li><a href="#"><?php echo ucfirst($supplierinformation['city']); ?></a></li>
+                                     </ul>
+                                      <input type="button" name="Submit" onclick="redirect_to_spotsite()" value="Zur Spotsite" class="btnProductView btn btn-default margin-bottom-10" role="button"/>
+                            		<p id="product_reference">
+                            			<label for="product_reference">Artikel-Nr: </label>
+                            			<span class="editable"><?php echo $_product->getSku()?></span>
+                            		</p>                                    
+                                    <!-- short_description -->
+                                    <div id="short_description_block">
+                        				<div id="short_description_content" class="rte align_justify">
+                        					<p class="bodytext"><?php echo $_helper->productAttribute($_product, nl2br($_product->getShortDescription()), 'short_description') ?></p>
+                        			   </div>
+                    			     </div>                                    
+    								 <?php if ($_product->isSaleable() && $this->hasOptions()):?>             
+                                                    <?php echo $this->getChildChildHtml('container2', '', true, true) ?>
+                                    <?php endif;?>
+                                    <!-- prices -->
+                        		    <?php echo $this->getChildHtml('product_type_data');?>
+                            		<p id="reduction_percent" style="display:none;"><span id="reduction_percent_display"></span></p>
+                            		<p id="reduction_amount" style="display:none"><span id="reduction_amount_display"></span></p>    								
+    								<div class="row BitteAuswahlen">
+    										<div class="col-xs-12 col-sm-12 col-md-11">
+    											<div style="padding-bottom: 5px">
+    												<span >BITTE AUSWAHLEN:</span>
+    											</div>
+    											<div style="padding-bottom: 5px">
+    												<div class="row">
+    													<div class="col-xs-12 col-sm-12 col-md-2 ">
+    														<span class="bitteTitle">Größe:</span>
+    													</div>
+    													<div class="col-xs-12 col-sm-12 col-md-6 ">
+    														<select name="" id="selectgrobe" tabindex="1" class="SlectBox">
+    			                            					<option selected="" value="1_de">S</option>
+                                                                <option selected="" value="1_de">XL</option>
+    			                            				</select>
+    													</div>
+    												</div>
+    									        </div>
+    									        <div style="padding-bottom: 5px">
+    									        	<div class="row">
+    													<div class="col-xs-12 col-sm-12 col-md-2 ">
+    			                                			<span class="bitteTitle">farbe:</span>
+    			                                		</div>    			                                	
+    				                                	<div class="col-xs-12 col-sm-12 col-md-6 ">
+    					                                    <select name="selectfarbe" id="selectfarbe" tabindex="1" class="SlectBox" >
+    					                            			<option value="">beige</option>
+    											        	    <option value="">noir</option>
+                                                                <option value="">anthracite</option>
+    					                            		</select>
+    					                            	</div>
+    				                            	</div>
+    									        </div>                                                
+                                                <!-- quantity wanted -->
+    									        <div style="margin-bottom: 5px">
+    									        	<div class="row">
+    									        		<div class="col-xs-12 col-sm-12 col-md-2 ">
+    									        			<span class="bitteTitle">Menge:</span>
+    									        		</div>
+    									           	   <?php 
+                                                    		$qtyy=Mage::getModel('cataloginventory/stock_item')->loadByProduct($_product,false,false)->getQty();
+                          		                        ?>
+    									        		<div class="col-xs-12 col-sm-12 col-md-6 ">
+    									        			<select name="qty" id="selectmenge" tabindex="1" class="SlectBox">
+                                                                <?php 
+                                                                    for($i=0;$i<$qtyy;$i++)
+                                                                    {
+                                                                        echo "<option value='".($i+1)."'>".($i+1)."</option>";
+                                                                    }
+                                                                ?>
+    			                            				</select>
+    									        		</div>
+    									        	</div>
+    				                        	</div>
+                                                <!-- minimal quantity wanted -->
+                                        		<p id="minimal_quantity_wanted_p" style="display: none;">
+                                        		Dieses Produkt wird nicht einzeln verkauft. Sie müssen zumindest eine grüere <b id="minimal_quantity_label">1</b> Menge als 1 auswühlen.
+                                        		</p>
+                                                <!-- availability -->
+                                        		<p id="availability_statut" style="display: none;">
+                                        			<span id="availability_label">Verfügbarkeit:</span>
+                                        			<span id="availability_value">
+                                        			</span>
+                                        		</p>
+                                                <!-- number of item in stock -->
+    				                        	<div>
+    									        	<div class="row">
+    									        		<div class="col-xs-12 col-sm-12 col-md-2 ">
+    									        		</div>
+    									        		<div class="col-xs-12 col-sm-12 col-md-10 ">
+                                                    		<p id="pQuantityAvailable">
+                                                    			<span class="bitteTitle" id="quantityAvailable"><?php echo Mage::helper('core')->currency($qtyy,false,false);?>	</span>
+                                                    			<span style="display: none;" id="quantityAvailableTxt">verfügbares Teil</span>
+                                                    			<span  id="quantityAvailableTxtMultiple">verfügbare(s) Teil(e) auf Lager</span>
+                                                    		</p> 
+    									        		</div>
+    									        	</div>
+    									        </div>
+                                                <!-- Out of stock hook -->
+                                        		<p id="oosHook" style="display: none;">
+                                        		</p>
+                                                <p class="warning_inline" id="last_quantities" style="display: none">Achtung: Letzte verfügbare Teile!</p>
+    									        
+    										</div>
+    										<div class="col-xs-12 col-sm-12 col-md-1 ">
+    										</div>
+    								</div>    								
+    								<div class="row">
+    										<div class="col-xs-12 col-sm-12 col-md-11 ">
+    									        	<div class="row">
+    									        		<div class="col-xs-12 col-sm-12 col-md-12 ">
+    									        			<div class="row">
+    											        		<div class="col-xs-12 col-sm-4 col-md-4 ">
+                                                                    <!-- Add to Cart -->
+                                                        			<!--<?php $buttonTitle = $this->__('Add to Cart'); ?>
+                                                        			<div id='ajax_loader' style='display:none' ><img src='<?php echo $this->getSkinUrl('images/opc-ajax-loader.gif')?>'/></div>
+                                                        		    <div>                                                        		     
+                                                        		        <button role="button" type="button" title="<?php echo $buttonTitle ?>" class="btn btn-sm btn-new button btn-cart none-style" onclick="productAddToCartForm.submit(this)">
+                                                        		        	<div class="more_add_to_cart_button"><span></span><?php echo $buttonTitle ?></div>
+                                                        		        </button>                                                        		    
+                                                        		    </div>-->
+                                                                    <!-- Zur Kasse -->                                                                   
+                                                                        <input <?php if($_product->getOnlyInBusiness() == 1){echo 'onclick="OnlyInBusiness()" type="button"';}else{echo 'type="submit"';}?> name="Submit" value="JETZT KAUFEN" role="button" class="btnProductView btn"/>                                                                 
+    											        			<!--<p><a class="btn btn-sm btn-new" href="#" role="button">JETZT KAUFEN</a></p>-->
+                                                                </div>                                                                
+    											        		<div class="col-xs-12 col-sm-4 col-md-4 ">
+    											        			<a class="btnProductView btn" href="#" role="button">DEAL MACHEN</a>
+    											        			<p style="width: 100px; font-size: 9px; margin-top:5px;">PREIS VORSCHLAGEN UND HANDELN</p>
+    											        		</div>                                                               
+    											        		<div class="col-xs-12 col-sm-4 col-md-4 ">
+                                                                    <?php
+                                                        	    	$category_reservieren= Mage::getModel('catalog/category')->loadByAttribute('name', $supplierinformation["type_industry_name"]);
+                                                        		?>
+                                                        	    	<?php 
+                                                        	    	if($category_reservieren){
+                                                        	    	if($category_reservieren->getCategoryReservieren()==1):?>
+                                                        	 	    <div>  
+                                                        		     	<a class="fancybox.iframe"  id="reservieren_box" href="<?php echo "http://".$checkdomains[0]["domainName"]?>/reservieren/reservierentype/<?php echo $category_reservieren->getCategoryReservierenForm()?>/<?php echo $supplierinformation["typo3_id"]?>/<?php echo $_product->getId()?>">
+                                                        					<input type="button" value="Reservieren" role="button" class="btnProductView btn"/>	
+                                                        				</a>
+                                                        	     	</div>
+                                                        	     	<script>
+																		jQuery(document).ready(function() {
+																			jQuery("#reservieren_box").fancybox({
+																			maxWidth	: 800,
+																			maxHeight	: 600,
+																			fitToView	: false,
+																			width		: '70%',
+																			height		: '70%',
+																			autoSize	: false,
+																			closeClick	: false,
+																			openEffect	: 'none',
+																			closeEffect	: 'none'
+																		});
+																	});
+																	</script>
+                                                        	     	<?php endif; } ?>
+    											        			
+    											        		</div>
+    											        	</div>
+    									        		</div>
+    									        	</div>
+    									        
+    										</div>
+    										<div class="col-xs-12 col-sm-12 col-md-1 ">
+    										</div>
+    								</div>
+								</form> <!-- End form buy cart -->
+							</div>
+						</div>
+					</div>
+				</div>
+                </form> <!--  End form  addto cart-->
+			</div>				
+			<div class="row">			
+				<div class="col-xs-12 col-sm-12 col-md-12" >					
+        			<ul class="list-unstyled">
+        				<li id="left_share_fb">
+        				    <p>
+                                <a class="optionTitle" href="http://www.facebook.com/sharer.php?u=<?php echo $_product->getProductUrl();?>" class="js-new-window">
+                                    <i class="fa fa-share-alt"></i> <font>Auf Facebook Teilen</font>
+                                </a>
+                            </p>
+        				</li>
+        				<li class="print">
+                            <p><a class="optionTitle" href="javascript:print();"><i class="fa fa-print"></i><font>Drucken</font></a></p>
+                        </li>
+        				<li class="review optionTitle " style="margin-bottom: 40px;">
+                            <i class="fa fa-commenting-o"></i> <?php echo $this->getReviewsSummaryHtml($_product, false, true)?>
+                        </li>
+        			</ul>                    
+                    <?php echo $this->getChildHtml('addto') ?>
+				</div>
+			</div>  
+    <!-- id="more_info_block" -->
+    <div id="more_info_block" class="row">
+        <div class="col-xs-12 col-sm-12 col-md-12">
+            <div role="tabpanel">
+			  <!-- Nav tabs -->
+			  <ul class="nav nav-tabs" role="tablist">
+			    <li role="presentation"><a href="#weitereprodukte" aria-controls="weitereprodukte" role="tab" data-toggle="tab">WEITERE PRODUKTE</a></li>
+			    <li role="presentation"><a href="#mehrinfo" aria-controls="mehrinfo" role="tab" data-toggle="tab">MEHR INFO</a></li>
+			    <li role="presentation"><a href="#beschreibung" aria-controls="beschreibung" role="tab" data-toggle="tab">BESCHREIBUNG</a></li>
+			    <li role="presentation"><a href="#erhltlichbei" aria-controls="erhltlichbei" role="tab" data-toggle="tab">ERHÄLTLICH BEI</a></li>
+			  	<li role="presentation" class="active"><a href="#googlemap" aria-controls="googlemap" role="tab" data-toggle="tab">GOOGLE MAP</a></li>
+			  	<li role="presentation"><a href="#review" aria-controls="review" role="tab" data-toggle="tab">REVIEW</a></li>
+	    </ul>
+			  <!-- Tab panes -->
+			  <div id="more_info_sheets" class="sheets align_justify tab-content">
+			    <div role="tabpanel" class="tab-pane tabViewproduct" id="weitereprodukte">
+			    	<div class="row">
+			    	<!-- 
+                        <div class="col-xs-12 col-sm-5 col-md-5">
+                        </div>
+                   	-->
+                        <div class="col-xs-12 col-sm-12 col-md-12">
+                            <ul class="nav nav-pills pull-right">
+                                  <li role="presentation" class="nameValueTit"><a href="#" >SORTIEREN:</a></li>
+    							  <li class="nameValue active" data-sort="atoz" role="presentation" ><a href="#">A-Z</a></li>
+    							  <li role="presentation"><a href="#">|</a></li>
+    							  <li class="nameValue" data-sort="new" role="presentation"><a href="#">NEUSTE</a></li>
+    							  <li role="presentation"><a href="#">|</a></li>
+    							  <li class="nameValue" data-sort="topview"  role="presentation"><a href="#">MEIST BESUCHTE</a></li>
+    							  <li role="presentation"><a href="#">|</a></li>
+    							  <li class="nameValue" data-sort="random" role="presentation"><a href="#">ZUFALL</a></li>
+    						</ul>
+                        </div>
+                    </div>
+                    <div class="row relatedProductView">
+                    	<?php                     		
+		                	$relatedProductView = Mage::getModel('catalog/product')->getCollection()
+		                	->addAttributeToSelect('*')
+		                	->addFieldToFilter('spotcity_supplier',$_product->getSpotcitySupplier())
+		                	->addOrder('name','ASC')
+		                	->setPageSize(6);
+		                	
+		                	foreach($relatedProductView as $pr)
+		                	{
+		                		if($pr->getFinalPrice() < 0.5){
+									$price_fix = 'Preis auf Anfrage';
+								}else{
+									$price_fix = $this->getPriceHtml($pr, true, '-new');
+								}
+								/*
+		                		echo '<div class="col-xs-6 col-sm-4 col-md-2">
+ 										<div class="imgLiquidFill imgLiquid"  data-imgLiquid-fill="true" data-imgLiquid-verticalAlign="100%">
+	    									<a href="'.$pr->getProductUrl().'" title="Ring: Der Nachtblick" class="product_image">
+												<img src="'.$this->helper('catalog/image')->init($pr, 'small_image').'" alt="spotcity" class="img-responsive">
+											</a>
+ 										</div>
+										<div class="fit_product_title">'.$this->htmlEscape($pr->getName()).'</div>										
+										<div class="fit_product_price">'.$price_fix.'</div>
+										<div class="more-description">'.$this->helper('core/string')->truncate(strip_tags($pr->getshort_description()),60).'</div>
+										<div class="col-xs-12 col-sm-12 col-md-12">
+											<a class="btn btn-sm btn-new btn-profile" title="Ansehen" href="'.$pr->getProductUrl().'">Ansehen</a>
+										</div>										
+									</div>';
+									*/
+								
+								echo '<div class="col-xs-12 col-sm-6 col-md-6 margin-bottom-20">
+	    								<div class="row">
+											<div class="col-xs-12 col-sm-6 col-md-6 pull-left">
+											<a href="'.$pr->getProductUrl().'" title="Ring: Der Nachtblick" class="product_image pull-left">
+												<img src="'.$this->helper('catalog/image')->init($pr, 'small_image').'" alt="spotcity" class="img-responsive">
+											</a>
+											</div>
+											<div class="col-xs-12 col-sm-6 col-md-6 product-more-view">
+												<h3 class="fit_product_title">'.$this->htmlEscape($pr->getName()).'</h3>
+												<p class="more-description">'.$this->helper('core/string')->truncate(strip_tags($pr->getDescription()),60).'</p>
+												<div class="fit_product_price">'.$price_fix.'</div>
+												<a class="btnProductView btn" title="Ansehen" href="'.$pr->getProductUrl().'">Ansehen</a>
+											</div>
+										</div>
+									</div>';
+		                	}		                	
+	                	?>
+					</div>
+					<script type="text/javascript">
+					jQuery(document).ready(function() {
+						jQuery('.nav-pills .nameValue').click(function(){
+							/////////////////////////// viewproduct tab 1							
+							jQuery(".nav-pills").find("[class='nameValue active']").attr("class","nameValue");
+							jQuery(this).attr("class","nameValue active");
+				            var actionval = jQuery(this).attr("data-sort");				            
+						   	var pathArray = window.location.href.split( '/' );
+							var protocol = pathArray[0];
+							var host = pathArray[2];
+							var url = protocol + '//' + host;							
+							var urllan=url+"/supplier/index/relatedproduct";
+							var aj = new Ajax.Request(  
+									urllan, {  
+						        	method:'get',  
+						        	parameters:{
+						        	"id":<?php echo $_product->getSpotcitySupplier() ?>,
+						        	"action":actionval,
+						        	},
+						        	onComplete: function (response)
+						        	{
+						                //console.log(response.responseText);
+						                jQuery(".relatedProductView").html(response.responseText);						                
+										/////////////////////////// imgLiquid	
+						            	//jQuery(".imgLiquidFill").imgLiquid({fill:true});
+						                /////////////////////////// END imgLiquid
+						        	}
+						        });
+						    /////////////////////////// END viewproduct tab 1
+					    });
+					});
+					</script>					
+			    </div>
+			    <div role="tabpanel" class="tab-pane tabViewproduct" id="mehrinfo">
+                    <!-- full description -->
+                    <ul id="idTab1" class="rte block_hidden_only_for_screen list-unstyled">
+                    <?php 
+                    Mage::app()->setCurrentStore(4);
+                        $attributeSetModel = Mage::getModel("eav/entity_attribute_set");
+                    $attributeSetModel->load($_product->getAttributeSetId());
+                    $attributeSetName  = $attributeSetModel->getAttributeSetName();
+                    $entityTypeId = Mage::getModel('eav/entity')
+                     	 ->setType('catalog_product')
+                                    ->getTypeId();
+                    
+                    $attributeSetId = Mage::getModel('eav/entity_attribute_set')
+                                        ->getCollection()
+                                        ->setEntityTypeFilter($entityTypeId)
+                                        ->addFieldToFilter('attribute_set_name', $attributeSetName)
+                                        ->getFirstItem()
+                                        ->getAttributeSetId();
+                    $attributes = Mage::getModel('catalog/product_attribute_api')->items($attributeSetId);
+                    $i = 1;
+                    foreach($attributes as $_attribute){
+                    $filattributenames=strtolower(str_replace(" ", "_", $attributeSetName));
+                    if (strpos($_attribute['code'],strtolower($filattributenames)) !== false) {
+                    $infoValue = $_product->getResource()->getAttribute($_attribute['code'])->getFrontend()->getValue($_product);
+                    $infoLabel = $_product->getResource()->getAttribute($_attribute['code'])->getStoreLabel();
+                    $rowTab = '';
+                    /*($i % 2 == 1) ? $rowTab= "even" : $rowTab = "odd";*/
+                    echo "<li><div class='divTable'>
+                    <div class='divRow $rowTab'>
+                    <div class='divCell moreInfo'>".$infoLabel.": </div><div class='divCell'>".$infoValue."</div>
+                    </div></div>
+                    </li>";
+                        $i++;
+                    }                        
+                    }                    
+                    ?>
+                    	<li style="clear: both;"></li>
+                    </ul>
+                </div>
+			    <div role="tabpanel" class="tab-pane tabViewproduct" id="beschreibung">
+                    <ul id="idTab2" class="rte block_hidden_only_for_screen list-unstyled">                    
+                    <?php
+                    	if(!($_product->getdescription()))
+                    	{ 
+                    		echo $_product->getdescription();
+                    	}
+                    	else 
+                    	{
+                    		echo utf8_encode($supplierinformation['content']);
+                    	}
+                   ?>                    
+                    </ul>
+                </div>
+			    <div role="tabpanel" class="tab-pane tabViewproduct" id="erhltlichbei">
+                    <!-- product's features -->                    
+                    <?php $telsupplier		= $supplierinformation['tel']; ?>
+                    <?php $emailsupplier	= $supplierinformation['email']; ?>
+                    <?php $faxsupplier		= $supplierinformation['fax']; ?>
+                    <?php $addresssupplier	= $supplierinformation['address']; ?>
+                    <?php $mon_frisupplier	= $supplierinformation['mon_fri']; ?>
+                    <?php $weekendsupplier	= $supplierinformation['weekend']; ?>
+                    <?php $holidaysupplier	= $supplierinformation['holiday']; ?>
+                    <?php $zipcode			= $supplierinformation['plz']; ?>
+                    <?php $citysuplier		= 	$supplierinformation['city'];?>
+                    <!-- check image -->
+                    <?php $imagesupplier=Mage::helper('ads')->gettypo3path().'/'.$supplierinformation['image']; ?>
+                    
+                    <?php
+                    if(!is_file($imagesupplier)){
+                    	$imagesupplier = Mage::helper('ads')->gettypo3url() . Mage::helper('ads')->gettypo3imagedefault();
+                    }else{
+                    	$imagesupplier=Mage::helper('ads')->gettypo3url().'/'.$supplierinformation['image'];
+                    }
+                    
+                    ?>                
+                    <ul id="idTab3" class="list-unstyled">
+                    <li>
+                    <div class="divTable infodivTable">
+                                <div class="divRow">
+                                       <div class="divCell infoCell">
+                                           <span class='title-info title-info-red'><?php echo "STYLED $cateandsubcat[1]'s $catearr[1] | ".ucfirst($citysuplier)." ";?></span>
+                                           <br/>
+                                           <br/>
+                                           <span class='title-info'><?php echo "Unternehmer: ";?></span><?php echo $supplierlabel;?>
+                                           <br/>
+                                           <span class='title-info'><?php echo "Adresse: ";?></span><?php echo utf8_encode($addresssupplier);?>
+                                           <?php if($zipcode!=""){?>
+                                           <br/>
+                                            <span class='title-info'><?php echo "PLZ: ";?></span><?php echo $zipcode;?>
+                                            <?php }?>
+                                            <?php if($citysuplier!=""){?>
+                                            	 <br/>
+                                            	<span class='title-info'><?php echo "Stadt: ";?></span><?php echo ucfirst($citysuplier);?>
+                                            <?php }?>
+                                           <br/>
+                                           <br/>
+                                           <span class='title-info'><?php echo "Tel.: ";?></span><?php echo $telsupplier;?>
+                                           <?php if($faxsupplier != ''): ?>
+                                           <br/>
+                                           <span class='title-info'><?php echo "Fax: ";?></span><?php echo $faxsupplier;?>
+                                           <?php endif; ?>
+                                           <br/>
+                                           <span class='title-info'><?php echo "Email: ";?></span><span style="color: #CE0000;"><?php echo $emailsupplier;?></span>
+                                           <br/>
+                                           <br/>
+                                       </div>
+                                   	   <div class="divCell infoCellImage">
+                                            <!--<span><img src='<?php echo $imagesupplier; ?>' width='100px' /></span>-->
+                                            <?php if($mon_frisupplier != '' || $weekendsupplier != '' || $holidaysupplier != ''): ?>
+                                               <span class='title-info title-info-red'><?php echo "ÖFFNUNGSZEITEN: ";?></span>
+                                           	   <br/>
+                                               <br/>
+                        					   <?php if($mon_frisupplier != ''): ?>
+                        					   <span class='title-info child'><?php echo "Mo-Fr: ";?></span><?php echo $mon_frisupplier;?>
+                        					   <br/>
+                        					   <?php endif; ?>
+                        					   <?php if($weekendsupplier != ''): ?>
+                        					   <span class='title-info child'><?php echo "Sam-So: ";?></span><?php echo $weekendsupplier;?>
+                        					   <?php endif; ?>
+                        					   <?php if($holidaysupplier != ''): ?>
+                        					   <br/>
+                        					   <span class='title-info child'><?php echo "Feiertage: ";?></span><?php echo $holidaysupplier;?>
+                        					   <?php endif; ?>
+                                           <?php endif; ?>
+                                       </div>
+                              
+                               </div>
+                    </div>
+                    <div class='cl'></div> 
+                    </li>
+                    <li class="tab-li-content"><?php //echo utf8_encode($supplierinformation['content']);?></li>
+                    </ul>
+                </div>
+			  	<div role="tabpanel" class="tab-pane active tabViewproduct" id="googlemap">
+                    <ul id="idTab4" class="bullet">
+        			<?php if ($latlong != ''){?>
+                    <!-- <script type="text/javascript"
+                        src="http://maps.google.com/maps/api/js?sensor=false">
+                    </script> -->
+                    <script type="text/javascript">
+                    
+                      var geocoder;
+                      var map;
+                      var latlong = '<?php echo $latlong;?>'; 
+                      var latlongs = latlong.split(",");
+                      
+                      function initialize() {
+                       
+                        geocoder = new google.maps.Geocoder();
+                        var latlng = new google.maps.LatLng(latlongs[0],latlongs[1]);
+                        var myOptions = {
+                          zoom: 14,
+                          center: latlng,
+                          mapTypeId: google.maps.MapTypeId.ROADMAP
+                        };
+                        map = new google.maps.Map(document.getElementById("map_canvas"),
+                            myOptions);
+                        codeAddress();
+                      }
+                      function codeAddress() {
+                         var sAddress = document.getElementById("inputTextAddress").value;
+                        geocoder.geocode( { 'address': sAddress}, function(results, status) {
+                            if (status == google.maps.GeocoderStatus.OK) {
+                            
+                                 map.setCenter(results[0].geometry.location);
+                                 var marker = new google.maps.Marker({
+                                    map: map, 
+                                    position: results[0].geometry.location,
+                                    icon: 'http://google-maps-icons.googlecode.com/files/supermarket.png'
+                                });
+                    
+                                 attachSecretMessage(marker);
+                    
+                                 
+                            } 
+                          });
+                      }
+                    
+                      function attachSecretMessage(marker) {
+                      var message = '<h1><?php echo $supplierlabel."</h1>"?>'+ document.getElementById("inputTextAddress").value;
+                      var infowindow = new google.maps.InfoWindow({
+                        content: message
+                      });
+                    
+                      google.maps.event.addListener(marker, 'click', function() {
+                        infowindow.open(marker.get('map'), marker);
+                      });
+                     
+                    }
+                      
+                      google.maps.event.addDomListener(window, 'load', initialize); 
+                    </script>
+                    
+                    
+                        <input type="hidden" id="inputTextAddress"  value="<?php echo utf8_encode($google_location)?>" />
+                             <div id="map_canvas" style="width:100%; height:350px"></div>
+                    <?php 
+                    }else{
+							echo 'Hat das Unternehmen Adresse nicht finden!';
+					}
+                    ?>
+                    </ul>  
+                </div>
+			    <div role="tabpanel" class="tab-pane tabViewproduct" id="review">
+                    <ul id="idTab5" class="list-unstyled">
+                    <div class="product-collateral">
+                    <?php foreach ($this->getChildGroup('detailed_info', 'getChildHtml') as $alias => $html):?>
+                            <div class="box-collateral <?php echo "box-{$alias}"?>">
+                                <?php if ($title = $this->getChildData($alias, 'title')):?>
+                                <h3><?php echo $this->escapeHtml($title); ?></h3>
+                                <?php endif;?>
+                                <?php echo $html; ?>
+                            </div>
+                    <?php endforeach;?>
+                            <?php echo $this->getChildHtml('upsell_products') ?>
+                            <?php echo $this->getChildHtml('product_additional_data') ?>
+                    </div>
+                    </ul>
+                </div>
+			  </div>
+			  
+			</div>
+            
+        </div>
+    </div>
+</div>
+<?php 
+$time = microtime();
+
+$time = explode(' ', $time);
+
+$time = $time[1] + $time[0];
+
+$finish = $time;
+
+$total_time = round(($finish - $start), 4);
+
+echo '<input type="hidden" value="'.$total_time.'"/>';
+?>
