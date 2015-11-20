@@ -58,3 +58,41 @@ Mage::app()->getRequest()->getModuleName();
 The above functions (getControllerName, getActionName, getRouteName, getModuleName) are present in the class Mage_Core_Model_Url.
 You can explore all requests with print_r.
 echo "<pre>"; print_r(Mage::app()->getRequest());	
+
+/***Can’t update shopping cart quantity (Khong update so luong san pham trong gio hang)
+1. Vao duong dan: 
+In your /app/design/frontend/<theme>/default/template/checkout/cart.phtml file or /app/design/frontend/default/<theme>/template/checkout/cart.phtml
+2. Tai dong 50 ta fix lai nhu sau:
+<form method="post" action="<?php echo $this->getBaseUrl('checkout/cart/updatePost')?>">
+        C1: <input type="hidden" name="form_key" value="<?php echo Mage::getSingleton('core/session')->getFormKey(); ?>" >
+        C2 : <?php echo $this->getBlockHtml('formkey'); ?> 
+</form>
+
+/**** Mot so loi khi update phien ban magento **/
+Link bai viet: http://anantprajapati.blogspot.com/2014/03/shippng-method-and-shopping-cart-not.html
+When we are add to cart the product and  proceed for to checkout then that time shipping1 method not working because of the ajax not the loading any content from js.
+
+I have fixed for that the copy the
+
+
+ app\design\frontend\default\modern\layout\checkout.xml file and replaced with the your current theme in
+app\design\frontend\default\yourthemename\layout\ and placed it. and now the shipping method is working properly.
+
+When we are update the shopping cart quantity it is not update the quantity value.
+
+for updating the shopping cart quantity you have to place the following code into the below file.
+app\design\frontend\default\yourtheme\template\checkout\cart.phtml in that file around at 47 line
+ <form action="<?php echo $this->getUrl('checkout/cart/updatePost') ?>" method="post">  
+after that place the following code.
+<?php echo $this->getBlockHtml('formkey'); ?> 
+,and now its working.
+
+After the checkout process place order button is not working.
+
+for that we have to change the following file:
+app\design\frontend\default\yourtheme\template\checkout\onepage\review\info.phtml and
+
+change the code:
+review = new Review('<?php echo $this->getUrl('checkout/onepage/saveOrder', array('form_key' => Mage::getSingleton('core/session')->getFormKey())) ?>', '<?php echo $this->getUrl('checkout/onepage/success') ?>', $('checkout-agreements')); 
+after change the place order button is working properly.
+   
