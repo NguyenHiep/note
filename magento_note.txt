@@ -57,9 +57,106 @@ Mage::app()->getRequest()->getModuleName();
 === Class chua cac phuong thuc get module
 The above functions (getControllerName, getActionName, getRouteName, getModuleName) are present in the class Mage_Core_Model_Url.
 You can explore all requests with print_r.
+<<<<<<< HEAD
+echo "<pre>"; print_r(Mage::app()->getRequest());
+======================= Magento get category by id =======================
+<?php
+ 
+// get category model by category id, assume you have known category id, $categoryId
+$_category = Mage::getModel('catalog/category')->load($categoryId);
+ 
+// category name
+$categoryName = $_category->getName();
+ 
+// category description
+$categoryDescription = $_category->getDescription();
+ 
+// category url
+$categoryUrl = $_category->getUrl();
+ 
+// category url key
+$categoryUrlKey = $_category->getUrl_key();
+ 
+// category thumbnail
+$categoryThumbnail = $_category->getThumbnail();
+ 
+// category image url
+$categoryImageUrl = $_category->getImageUrl();
+ 
+// category level
+$categoryLevel = $_category->getLevel();
+ 
+// parent category
+$parentCategoryId = $_category->getParentId();
+$parentCategory   = Mage::getModel('catalog/category')->load($parentCategoryId);
+ 
+?>	
+================ Cach tao mot function su dung toan cuc  trong magento ====
+B1: Tao 1 file voi ten la Mycode.xml
+1) Create a file named ‘Mycode.xml’ and copy it to app/etc/modules/ – it should look like this:
+
+<?xml version="1.0"?>
+<config>
+    <modules>
+		<Mycode_Function>
+			<active>true</active>
+			<codePool>local</codePool>
+		</Mycode_Function>
+    </modules>
+</config>
+2) Create the directory
+app/code/local/Mycode/Function/etc
+and then create a file named ‘config.xml’
+In it copy:
+
+<?xml version="1.0"?>
+<config>
+ 
+    <modules>
+        <Mycode_Function>
+            <version>1.0.0</version>
+        </Mycode_Function>
+    </modules>
+ 
+    <global>
+ 
+        <helpers>
+            <function>
+                <class>Mycode_Function_Helper</class>
+            </function>
+        </helpers> 
+ 
+    </global>
+ 
+</config>
+3) Create the directory
+app/code/local/Mycode/Function/Helper
+and then create a file named ‘Data.php’
+In it copy:
+
+<?php
+ 
+class Mycode_Function_Helper_Data extends Mage_Core_Helper_Abstract
+{
+ 
+	public function test(){
+ 
+	return 'works';
+ 
+	}
+ 
+}
+4> You can now call this function like so
+
+		<?php 
+ 
+		 echo Mage::helper('function')->test();
+ 
+		 ?>
+=================================== Mot so loi pho bien khi update magento len version moi =========
 echo "<pre>"; print_r(Mage::app()->getRequest());	
 
-/***Can�t update shopping cart quantity (Khong update so luong san pham trong gio hang)
+/***Can't update shopping cart quantity (Khong update so luong san pham trong gio hang)
 1. Vao duong dan: 
 In your /app/design/frontend/<theme>/default/template/checkout/cart.phtml file or /app/design/frontend/default/<theme>/template/checkout/cart.phtml
 2. Tai dong 50 ta fix lai nhu sau:
@@ -95,4 +192,3 @@ app\design\frontend\default\yourtheme\template\checkout\onepage\review\info.phtm
 change the code:
 review = new Review('<?php echo $this->getUrl('checkout/onepage/saveOrder', array('form_key' => Mage::getSingleton('core/session')->getFormKey())) ?>', '<?php echo $this->getUrl('checkout/onepage/success') ?>', $('checkout-agreements')); 
 after change the place order button is working properly.
-   
