@@ -192,3 +192,18 @@ app\design\frontend\default\yourtheme\template\checkout\onepage\review\info.phtm
 change the code:
 review = new Review('<?php echo $this->getUrl('checkout/onepage/saveOrder', array('form_key' => Mage::getSingleton('core/session')->getFormKey())) ?>', '<?php echo $this->getUrl('checkout/onepage/success') ?>', $('checkout-agreements')); 
 after change the place order button is working properly.
+
+====/ Loi : Fatal error: Call to undefined function mcrypt_module_open() in /path/to/Magento/site/lib/Varien/Crypt/Mcrypt.php on line 63, 74
+Fix: sudo apt-get install mcrypt
+sudo apt-get install php5-mcrypt
+sudo php5enmod mcrypt
+==> Sau do reset la apache
+And to restart apache:
+
+sudo /etc/init.d/apache2 restart
+
+==> Van de da dc giai quyet
+
+
+
+
