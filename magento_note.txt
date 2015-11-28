@@ -203,7 +203,17 @@ And to restart apache:
 sudo /etc/init.d/apache2 restart
 
 ==> Van de da dc giai quyet
-
+====== Khi update magento 1.7 => 1.9 Payment not loading on Checkout (Phuong thuc thanh toan buoc 4 khong hoat dong)
+Fix bang cach: Vao file
+/app/design/frontend/base/default/template/checkout/onepage/payment.phtml
+==> Tai dong 36
+<fieldset>
+<?php echo $this->getChildHtml('methods') ?>
+</fieldset>
+Thay bang
+<fieldset id="checkout-payment-method-load">
+<?php echo $this->getChildHtml('methods') ?>
+</fieldset>
 
 
 
