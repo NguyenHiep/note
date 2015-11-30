@@ -1,3 +1,12 @@
+=== 14.12.2015 ====
+** Lam the nao de lay id category hien tai ***
+=> Su dung ham: Mage::registry('current_category')->getId(); 
+** Lam the nao de lay noi dung mot category **
+=> 
+==== 07.12.2015 ====
+**Lam the nao de get Breadcrumbs phtml file
+=> Su dung ham:  echo $this->getLayout()->getBlock('breadcrumbs')->toHtml();
+
 Lam theo nao de Remove block
 TH1: Block co after hoac before
 + <remove name="Ten block" />
