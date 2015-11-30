@@ -1,4 +1,7 @@
 === 14.12.2015 ====
+/** Su dung cac khac de tao mot block trong file phtml
+=> echo $this->getLayout()->createBlock('catalog/layer_view')->setTemplate('catalog/layer/view.phtml')->toHtml();
+Trong do create => Ten CLASS_GROUP_NAME/PATH_TO_BLOCK_FILE , set Template: PATH/RELATIVE/TO/TEMPLATE/*.phtml
 ** Lam the nao de lay id category hien tai ***
 => Su dung ham: Mage::registry('current_category')->getId(); 
 ** Lam the nao de lay noi dung mot category **
