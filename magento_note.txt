@@ -1,3 +1,17 @@
+=== 29.12.2015 ===
+*** Lam the nao de thay doi so luong paging 50,100, 150 cho trang result search
+==> Tai catalogsearch.xml
+ <catalogsearch_result_index>
+        <reference name="product_list_toolbar">
+            <action method="addPagerLimit"><mode>grid</mode><limit>50</limit></action>
+             <action method="addPagerLimit"><mode>grid</mode><limit>100</limit></action>
+              <action method="addPagerLimit"><mode>grid</mode><limit>150</limit></action>
+            <action method="addPagerLimit"><mode>list</mode><limit>50</limit></action>
+              <action method="addPagerLimit"><mode>list</mode><limit>100</limit></action>
+                <action method="addPagerLimit"><mode>list</mode><limit>150</limit></action>
+        </reference>
+    </catalogsearch_result_index>
+    
 === 14.12.2015 ====
 /** Su dung cac khac de tao mot block trong file phtml
 => echo $this->getLayout()->createBlock('catalog/layer_view')->setTemplate('catalog/layer/view.phtml')->toHtml();
