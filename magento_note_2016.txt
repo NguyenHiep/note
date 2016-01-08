@@ -1,0 +1,42 @@
+Date: 08.01.2016
++ Goi mot block static trong backend ra file *.phtml ta lam nhu sau:
+	<?php echo $this->getLayout()->createBlock('cms/block')->setBlockId('Ten Identifier')->toHtml() ?>
+	
++ Lam the nao de upload file pdf trong magento 1.9.2.2 bang editor
+=> Anwers:
+B1: Tao file: app/etc/modules/Pdf_WysiwygFiles.xml
+Noi dung nhu sau:
+<?xml version="1.0"?>
+<config>
+  <modules>
+    <Pdf_WysiwygFiles>
+      <active>true</active>
+      <codePool>local</codePool>
+    </Pdf_WysiwygFiles>
+  </modules>
+</config>
+B2: Vao: app/local/Pdf/WysiwygFiles/etc/config.xml chen doan code sau:
+<?xml version="1.0" encoding="UTF-8"?>
+<config>
+  <modules>
+    <Pdf_WysiwygFiles>
+      <version>1.0.0</version>
+    </Pdf_WysiwygFiles>
+  </modules>
+  <adminhtml>
+    <cms>
+      <browser>
+        <extensions>
+          <allowed>
+            <jpg>1</jpg>
+            <jpeg>1</jpeg>
+            <png>1</png>
+            <gif>1</gif>
+            <pdf>1</pdf>
+          </allowed>
+        </extensions>
+      </browser>
+    </cms>
+  </adminhtml>
+</config>
+===== The end ======

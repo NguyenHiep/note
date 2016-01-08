@@ -1,3 +1,5 @@
+=== 31.12.2015 => Cuoi nam :)) 
+Link: http://www.sitepoint.com/magento-install-upgrade-data-scripts-explained/
 === 29.12.2015 ===
 *** Lam the nao de thay doi so luong paging 50,100, 150 cho trang result search
 ==> Tai catalogsearch.xml
