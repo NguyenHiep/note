@@ -1,3 +1,11 @@
+Date: 12.01.2016
++Kiem tra san pham (product) thuoc nhom atribute nao?
+=> //Get info attru
+	$attributeSetModel = Mage::getModel("eav/entity_attribute_set");
+	$attributeSetModel->load($_product->getAttributeSetId());
+	$attributeSetName  = $attributeSetModel->getAttributeSetName();
+====
+
 Date: 08.01.2016
 + Goi mot block static trong backend ra file *.phtml ta lam nhu sau:
 	<?php echo $this->getLayout()->createBlock('cms/block')->setBlockId('Ten Identifier')->toHtml() ?>
