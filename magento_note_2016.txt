@@ -1,3 +1,6 @@
+date 14.01.2016
++http://magento.stackexchange.com/questions/38502/how-to-remove-sid-from-url
+
 Date: 12.01.2016
 +Kiem tra san pham (product) thuoc nhom atribute nao?
 => //Get info attru

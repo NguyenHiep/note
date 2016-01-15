@@ -19,3 +19,11 @@ http://www.elasticsearch.org/guide/en/elasticsearch/reference/current/setup-repo
 3. Run apt-get update and the repository is ready for use. You can install it with :
 	apt-get update
 	apt-get install elasticsearch
+====
+Web cai plugin head cho elastichsearch
+https://mobz.github.io/elasticsearch-head/
++Cai dat: 
+B1: Ra ngoai folder chua thu muc elasticsearch.
+=> Go lenh nay: elasticsearch/bin/plugin -install mobz/elasticsearch-head
+B2: open http://localhost:9200/_plugin/head/   -> Co the thay  http://localhost:9200 bang dia chi ip cua ban 
+khi cai dat elacticsearch. VD: http://192.168.171.139:9200/_plugin/head/
