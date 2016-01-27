@@ -1,3 +1,14 @@
+date 27.01.2016
++ Lam the nao de kiem tra page nay thuoc page tinh hay khong
+=> //from a block or phtml script
+$this->getRequest()->getModuleName()
+When this returns the string 'cms', you're on a CMS page.
+
+When Magento's frontend and admin routers can't find a match on your URL, the CMS router takes over.
+ If the CMS router finds a match (based on the CMS pages you've setup), 
+ it hands off the request to the cms module and Mage_Cms_IndexController controller.
+ ====================
+ 
 date 14.01.2016
 +http://magento.stackexchange.com/questions/38502/how-to-remove-sid-from-url
 
