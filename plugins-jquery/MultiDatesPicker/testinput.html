@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+		<link rel="shortcut icon" href="favicon.ico">
+		<title>MultiDatesPicker for jQuery UI</title>
+		<meta name="description" content="MDP is a little plugin that enables jQuery UI calendar to manage multiple dates.">
+		<meta name="keywords" content="Multiple Dates Picker, jQuery, jQuery UI, javascript, calendar, Luca Lauretta, dubrox">
+		<meta name="author" content="Luca Lauretta aka dubrox">
+		
+		<!-- loads jquery and jquery ui -->
+		<!-- -->
+		<script type="text/javascript" src="js/jquery-1.11.1.js"></script>
+		<script type="text/javascript" src="js/jquery-ui-1.11.1.js"></script>
+		<!-->
+		<script type="text/javascript" src="js/jquery-2.1.1.js"></script>
+		<script type="text/javascript" src="js/jquery-ui-1.11.1.js"></script>
+		<!-- -->
+		
+		<!-- loads mdp -->
+		<script type="text/javascript" src="jquery-ui.multidatespicker.js"></script>
+		
+		<!-- mdp demo code -->
+		<script type="text/javascript">
+		<!--
+			var latestMDPver = $.ui.multiDatesPicker.version;
+			var lastMDPupdate = '2014-09-19';
+			
+			$(function() {
+				
+				// Run Demos
+				$('#date-event').each(function() {
+					eval($(this).attr('title','NEW: edit this code and test it!').text());
+					this.contentEditable = true;
+				}).focus(function() {
+					if(!$(this).next().hasClass('test'))
+						$(this)
+							
+							.next('.test').click(function() {
+								$(this).closest('#date-event').find('.hasDatepicker').multiDatesPicker('destroy');
+								eval($(this).prev().text());
+								$(this).remove();
+							});
+				});
+			});
+		// -->
+		</script>
+		
+		<!-- loads some utilities (not needed for your developments) -->
+		<link rel="stylesheet" type="text/css" href="css/mdp.css">
+		<link rel="stylesheet" type="text/css" href="css/prettify.css">
+		<script type="text/javascript" src="js/prettify.js"></script>
+		<script type="text/javascript" src="js/lang-css.js"></script>
+		<script type="text/javascript">
+		$(function() {
+			prettyPrint();
+		});
+		</script>
+		
+	</head>
+	<body>
+			<form action="" method="post">
+		    <input type="hidden" name="form_key" value="<?php echo $formKey; ?>" />
+		    <div class="form-group">
+		        <label for="date-event">Select date</label>
+		         <input type="text" class="form-control" name="date-event" id="date-event"/> QTY
+		    </div>
+		    <button type="submit" class="btn btn-buchen">Buchen</button>
+		</form>
+	</body>
+
